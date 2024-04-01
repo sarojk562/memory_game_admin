@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 Future<Map<String, dynamic>?> loginUser(
     String username, String password) async {
-  const url = baseUrl + getUserLevel;
+  final url = '$baseUrl$getUserLevel/${Uri.encodeComponent(username)}';
   try {
     final response = await http.get(
       Uri.parse(url),
