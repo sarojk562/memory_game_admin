@@ -1,6 +1,6 @@
+import 'dart:developer';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_memory_game/services/post_result.dart';
 
 class GameOverScreen extends StatefulWidget {
   final int duration;
@@ -16,17 +16,11 @@ class _GameOverScreenState extends State<GameOverScreen> {
   @override
   void initState() {
     super.initState();
-    _handleSubmitResult(widget.duration);
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> _handleSubmitResult(num duration) async {
-    final response = await postResult('$duration' 's');
-    print(response);
   }
 
   @override

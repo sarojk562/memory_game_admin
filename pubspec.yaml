@@ -37,5 +37,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/.
+    - assets/images/level_one_images/.
+    - assets/images/level_two_images/.
+    - assets/images/level_three_images/.
     - assets/brain_animation.json
   #   - images/a_dot_ham.jpeg

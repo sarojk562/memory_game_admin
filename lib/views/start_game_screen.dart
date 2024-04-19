@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_memory_game/constants/values/strings.dart';
 import 'package:flutter_memory_game/providers/user_data.dart';
 import 'package:flutter_memory_game/utils/validators.dart';
 import 'package:flutter_memory_game/views/game_screen.dart';
@@ -33,7 +34,9 @@ class _StartGameScreenState extends State<StartGameScreen> {
           const SnackBar(content: Text('Please enter a valid email address')),
         );
       }
-    } on Exception catch (error) {}
+    } on Exception catch (error) {
+      log('$error');
+    }
   }
 
   @override

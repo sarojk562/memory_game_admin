@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_memory_game/model/data.dart';
 import 'package:flutter_memory_game/providers/user_data.dart';
+import 'package:flutter_memory_game/services/get_user_data.dart';
 import 'package:flutter_memory_game/utils/firestore.dart';
 import 'package:flutter_memory_game/views/game_over_screen.dart';
 import 'package:provider/provider.dart';
@@ -25,13 +26,14 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
   bool _flip = false;
   bool _start = false;
   bool _wait = false;
-  late bool _isFinished;
-  late Timer _timer;
-  late Timer _durationTimer;
-  late int _left;
-  late List _data;
-  late List<bool> _cardFlips;
-  late List<GlobalKey<FlipCardState>> _cardStateKeys;
+  bool _isFinished = false;
+  Timer _timer = Timer(Duration.zero, () {});
+  Timer _durationTimer = Timer(Duration.zero, () {});
+  int _left = 0;
+  Map<String, dynamic>? userData = {};
+  List _data = [];
+  List<bool> _cardFlips = [];
+  List<GlobalKey<FlipCardState>> _cardStateKeys = [];
 
   //Camera
   bool _isLoading = true;
@@ -64,8 +66,35 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
     });
   }
 
-  void initializeGameData() {
-    _data = createShuffledListFromImageSource();
+  void initializeGameData(Map<String, dynamic>? userData) {
+    if (userData != null) {
+      log('${userData["user_level"]}');
+
+      switch (userData['user_level']) {
+        case 1:
+          // Code for level 1
+          imagePath = levelOneImagePath;
+          _data = level1Images;
+          break;
+        case 2:
+          // Code for level 2
+          imagePath = levelTwoImagePath;
+          _data = level2Images;
+          break;
+        case 3:
+          // Code for level 3
+          imagePath = levelThreeImagePath;
+          _data = level3Images;
+          break;
+        default:
+          // Code for other levels
+          break;
+      }
+    } else {
+      imagePath = levelOneImagePath;
+      _data = createShuffledListFromImageSource();
+    }
+
     _cardFlips = getInitialItemStateList();
     _cardStateKeys = createFlipCardStateKeysList();
     _time = 3;
@@ -75,12 +104,18 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
 
   @override
   void initState() {
+    super.initState();
+    fetchUserDataAndInitializeGame();
+  }
+
+  Future<void> fetchUserDataAndInitializeGame() async {
+    userData = await getUserData();
+    log('Fetched userData: $userData');
+    initializeGameData(userData);
     _initCamera();
     startTimer();
     startDuration();
     startGameAfterDelay();
-    initializeGameData();
-    super.initState();
   }
 
   @override
@@ -102,27 +137,27 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
   }
 
   void _recordVideo() async {
-    print('_recordVideo');
+    log('_recordVideo');
     try {
       final String? email = context.read<UserData>().playerEmail;
-      print(email);
+      log('$email');
       if (_isRecording) {
-        print('_recordVideo email');
+        log('_recordVideo email');
         final XFile xFile = await _cameraController.stopVideoRecording();
         final File file = File(xFile.path);
         final serverURL = await uploadVideo(file, email);
-        print('serverURL');
-        print(serverURL);
+        log('serverURL');
+        log(serverURL);
         setState(() => _isRecording = false);
       } else {
-        print('_recordVideo else');
+        log('_recordVideo else');
 
         await _cameraController.prepareForVideoRecording();
         await _cameraController.startVideoRecording();
         setState(() => _isRecording = true);
       }
     } catch (e) {
-      print(e);
+      log('$e');
     }
   }
 
@@ -175,7 +210,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
     try {
       _recordVideo();
     } catch (error) {
-      print("Error recording video: $error");
+      log("Error recording video: $error");
     }
   }
 
@@ -191,8 +226,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).textTheme;
-    final Map<String, dynamic>? userData = context.read<UserData>().value;
-    final level = userData?['level'] ?? 1;
+    final level = userData?['user_level'] ?? 1;
 
     return _isFinished
         ? GameOverScreen(
