@@ -66,10 +66,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDERUXFQRvN3XYoQ_-5O23z7yj3h9c7eaQ',
-    appId: '1:784579046439:ios:362d269a5e001eadf37202',
+    appId: '1:784579046439:ios:4e07ede13cc5edc2f37202',
     messagingSenderId: '784579046439',
     projectId: 'cardmatch-e7f12',
     storageBucket: 'cardmatch-e7f12.appspot.com',
-    iosBundleId: 'com.example.flutterMemoryGame',
+    iosBundleId: 'com.NAU.MemoryMatchGameAdmin',
   );
+
 }
