@@ -329,6 +329,20 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
                 ),
               ),
             ),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48), // full-width button
+                  ),
+                  child: const Text('Close Game'),
+                ),
+              ),
+            ),
           );
   }
 }
