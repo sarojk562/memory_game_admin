@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_memory_game/providers/user_data.dart';
+import 'package:flutter_memory_game/utils/firestore.dart';
 
 class EyeTrackingScreen extends StatefulWidget {
   const EyeTrackingScreen({Key? key}) : super(key: key);
@@ -14,6 +17,7 @@ class EyeTrackingScreen extends StatefulWidget {
 class _EyeTrackingScreenState extends State<EyeTrackingScreen> {
   late CameraController _cameraController;
   bool _cameraReady = false;
+  bool _isRecording = false;
 
   Timer? _focusTimer;
   int _step = 0;
@@ -34,8 +38,11 @@ class _EyeTrackingScreenState extends State<EyeTrackingScreen> {
   @override
   void initState() {
     super.initState();
-    _initCamera();
-    _startFocusSequence();
+    _initCamera().then((_) {
+      // once camera is ready, kick off recording & focus sequence
+      _handleRecording();
+      _startFocusSequence();
+    });
   }
 
   Future<void> _initCamera() async {
@@ -59,16 +66,40 @@ class _EyeTrackingScreenState extends State<EyeTrackingScreen> {
   }
 
   void _startFocusSequence() {
-    _focusTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _focusTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted) return;
       if (_step < _horizontalSeq.length) {
         setState(() => _currentIndex = _horizontalSeq[_step]);
         _step++;
       } else {
+        // end of sequence: stop & upload, then pop
+        await _handleRecording();
         _focusTimer?.cancel();
-        Navigator.of(context).pop();
+        if (mounted) Navigator.of(context).pop();
       }
     });
+  }
+
+  Future<void> _handleRecording() async {
+    try {
+      final email = context.read<UserData>().playerEmail;
+      if (_isRecording) {
+        // stop & upload
+        final XFile xFile = await _cameraController.stopVideoRecording();
+        final file = File(xFile.path);
+        final serverURL = await uploadVideo(file, email);
+        log('Uploaded video to: $serverURL');
+        setState(() => _isRecording = false);
+      } else {
+        // prepare & start
+        await _cameraController.prepareForVideoRecording();
+        await _cameraController.startVideoRecording();
+        setState(() => _isRecording = true);
+        log('Started recording eye-tracking');
+      }
+    } catch (e) {
+      log('Recording error: $e');
+    }
   }
 
   @override
@@ -86,70 +117,73 @@ class _EyeTrackingScreenState extends State<EyeTrackingScreen> {
       appBar: AppBar(title: const Text("Eye-Tracking Training")),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
             child: Text(
               'Look at the red circle till it moves to the next one till the end.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-
-
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      // width: 300,
-                      // height: 300,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 2),
-                      ),
-                      child: Stack(
-                        children: List.generate(_positions.length, (i) {
-                          return Align(
-                            alignment: _positions[i],
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: i == _currentIndex
-                                    ? Border.all(color: Colors.red, width: 3)
-                                    : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  // Focus-point grid
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 2),
+                        ),
+                        child: Stack(
+                          children: List.generate(_positions.length, (i) {
+                            return Align(
+                              alignment: _positions[i],
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                  border: i == _currentIndex
+                                      ? Border.all(color: Colors.red, width: 3)
+                                      : null,
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          }),
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                Expanded(
-                  child: _cameraReady
-                      ? CameraPreview(_cameraController)
-                      : const Center(child: CircularProgressIndicator()),
-                ),
-              ],
+                  // Camera preview
+                  Expanded(
+                    child: _cameraReady
+                        ? CameraPreview(_cameraController)
+                        : const Center(child: CircularProgressIndicator()),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
-
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              // if they hit close early, make sure we stop & upload
+              if (_isRecording) await _handleRecording();
+              Navigator.of(context).pop();
+            },
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48), // full-width
+              minimumSize: const Size.fromHeight(48),
             ),
             child: const Text('Close'),
           ),
