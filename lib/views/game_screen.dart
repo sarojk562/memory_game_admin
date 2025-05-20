@@ -145,7 +145,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
         log('_recordVideo email');
         final XFile xFile = await _cameraController.stopVideoRecording();
         final File file = File(xFile.path);
-        final serverURL = await uploadVideo(file, email);
+        final serverURL = await uploadVideo(file, email, false);
         log('serverURL');
         log(serverURL);
         setState(() => _isRecording = false);
@@ -270,9 +270,9 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 50,
-                          ),
+                          // const SizedBox(
+                          //   height: 50,
+                          // ),
                           GridView.builder(
                             padding: const EdgeInsets.all(8),
                             shrinkWrap: true,
@@ -326,6 +326,20 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
                           ]),
                     )),
                   ],
+                ),
+              ),
+            ),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48), // full-width button
+                  ),
+                  child: const Text('Close Game'),
                 ),
               ),
             ),
