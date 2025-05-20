@@ -105,8 +105,8 @@ class _EyeTrackingScreenState extends State<EyeTrackingScreen> {
                 Expanded(
                   child: Center(
                     child: Container(
-                      width: 300,
-                      height: 300,
+                      // width: 300,
+                      // height: 300,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black, width: 2),
                       ),

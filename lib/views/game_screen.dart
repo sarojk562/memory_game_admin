@@ -270,9 +270,9 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 50,
-                          ),
+                          // const SizedBox(
+                          //   height: 50,
+                          // ),
                           GridView.builder(
                             padding: const EdgeInsets.all(8),
                             shrinkWrap: true,
