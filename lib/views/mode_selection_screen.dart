@@ -22,7 +22,6 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Train eye-tracking button stays the same
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -34,7 +33,6 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ─── New dropdown ───
             DropdownButtonFormField<int>(
               value: _selectedLevel,
               decoration: const InputDecoration(
@@ -53,7 +51,6 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Start game button now passes _selectedLevel
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
