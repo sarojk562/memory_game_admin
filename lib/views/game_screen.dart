@@ -13,7 +13,12 @@ import 'package:flutter_memory_game/views/game_over_screen.dart';
 import 'package:provider/provider.dart';
 
 class MyFlipCardGame extends StatefulWidget {
-  const MyFlipCardGame({super.key});
+  final int level;
+
+  const MyFlipCardGame({
+    Key? key,
+    required this.level,
+  }) : super(key: key);
 
   @override
   State<MyFlipCardGame> createState() => _MyFlipCardGameState();
@@ -66,33 +71,23 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
     });
   }
 
-  void initializeGameData(Map<String, dynamic>? userData) {
-    if (userData != null) {
-      log('${userData["user_level"]}');
-
-      switch (userData['user_level']) {
-        case 1:
-          // Code for level 1
-          imagePath = levelOneImagePath;
-          _data = level1Images;
-          break;
-        case 2:
-          // Code for level 2
-          imagePath = levelTwoImagePath;
-          _data = level2Images;
-          break;
-        case 3:
-          // Code for level 3
-          imagePath = levelThreeImagePath;
-          _data = level3Images;
-          break;
-        default:
-          // Code for other levels
-          break;
-      }
-    } else {
-      imagePath = levelOneImagePath;
-      _data = createShuffledListFromImageSource();
+  void initializeGameData() {
+    switch (widget.level) {
+      case 1:
+        imagePath = levelOneImagePath;
+        _data = level1Images;
+        break;
+      case 2:
+        imagePath = levelTwoImagePath;
+        _data = level2Images;
+        break;
+      case 3:
+        imagePath = levelThreeImagePath;
+        _data = level3Images;
+        break;
+      default:
+        imagePath = levelOneImagePath;
+        _data = createShuffledListFromImageSource();
     }
 
     _cardFlips = getInitialItemStateList();
@@ -111,7 +106,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
   Future<void> fetchUserDataAndInitializeGame() async {
     userData = await getUserData();
     log('Fetched userData: $userData');
-    initializeGameData(userData);
+    initializeGameData();
     _initCamera();
     startTimer();
     startDuration();
@@ -226,7 +221,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).textTheme;
-    final level = userData?['user_level'] ?? 1;
+    final level = widget.level;
 
     return _isFinished
         ? GameOverScreen(
