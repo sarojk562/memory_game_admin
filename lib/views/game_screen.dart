@@ -225,7 +225,7 @@ class _MyFlipCardGameState extends State<MyFlipCardGame> {
 
     return _isFinished
         ? GameOverScreen(
-            duration: gameDuration,
+            duration: gameDuration, userLevel: widget.level,
           )
         : Scaffold(
             body: SafeArea(
